@@ -19,6 +19,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -27,6 +28,7 @@ import org.bukkit.event.Event
 import org.bukkit.event.player.PlayerChatEvent
 import org.bukkit.event.player.PlayerEvent
 import org.bukkit.event.player.PlayerListener
+import org.bukkit.event.server.ServerListener
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
@@ -36,9 +38,6 @@ data class Config(val token: String, @SerialName("channel") val channelId: Snowf
 class BetacordPlugin : JavaPlugin() {
     override fun onDisable() {
         instance = null
-        GlobalScope.launch {
-            (kord!!.getChannel(config.channelId)!! as TextChannel).createMessage("Server stopped.")
-        }
     }
 
     override fun onEnable() {
@@ -47,12 +46,12 @@ class BetacordPlugin : JavaPlugin() {
             kord!!.on<MessageCreateEvent> {
                 if (message.channelId.value != config.channelId.value) return@on
                 if (message.author?.isBot == true) return@on
-                val proxy = "[Discord] <${message.getAuthorAsMember()!!.displayName}> ${message.content}"
+                val proxy = "<§9${message.getAuthorAsMember()!!.displayName}§r> ${message.content}"
                 println(proxy)
                 server.broadcastMessage(proxy)
             }
             kord!!.on<ReadyEvent> {
-                (kord.getChannel(config.channelId)!! as TextChannel).createMessage("Server started.")
+                (kord.getChannel(config.channelId)!! as TextChannel).createMessage("**Server started.**")
             }
             kord!!.login {
                 intents += Intent.GuildMessages
@@ -80,6 +79,13 @@ class BetacordPlugin : JavaPlugin() {
             Event.Priority.Normal,
             this
         )
+
+        val shutdownHook = Thread {
+            runBlocking {
+                (kord!!.getChannel(config.channelId)!! as TextChannel).createMessage("**Server stopped.**")
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(shutdownHook)
     }
 
     companion object {
@@ -127,7 +133,7 @@ class ChatListener : PlayerListener() {
     override fun onPlayerJoin(event: PlayerEvent) {
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
-                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("${event.player.displayName} joined the game.")
+                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.displayName}** joined the game.")
             }
         }
     }
@@ -135,7 +141,7 @@ class ChatListener : PlayerListener() {
     override fun onPlayerQuit(event: PlayerEvent) {
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
-                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("${event.player.displayName} left the game.")
+                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.displayName}** left the game.")
             }
         }
     }

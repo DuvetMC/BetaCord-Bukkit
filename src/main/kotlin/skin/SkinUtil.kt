@@ -32,6 +32,8 @@ data class Textures(@SerialName("SKIN") val skin: Texture?)
 data class Texture(val url: String)
 
 object SkinUtil {
+    val cache = hashMapOf<String, String>()
+
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -46,9 +48,12 @@ object SkinUtil {
     val MOJANG_SESSION_BASE = "https://sessionserver.mojang.com/session/minecraft/profile/"
 
     suspend fun getHead(username: String): String {
-        val id = client.get(MOJANG_API_BASE+username).body<MojangUser>().id
-        val toDecode = client.get(MOJANG_SESSION_BASE+id).body<MojangSkin>().properties[0].value
-        val decoded = json.decodeFromString<MojangSkinDecode>(Base64.getDecoder().decode(toDecode).decodeToString())
-        return decoded.textures.skin!!.url.replace("http://textures.minecraft.net/texture/", "https://skin-oldifier.deno.dev/") + "?head"
+        cache[username] ?: let {
+            val id = client.get(MOJANG_API_BASE+username).body<MojangUser>().id
+            val toDecode = client.get(MOJANG_SESSION_BASE+id).body<MojangSkin>().properties[0].value
+            val decoded = json.decodeFromString<MojangSkinDecode>(Base64.getDecoder().decode(toDecode).decodeToString())
+            cache[username] = decoded.textures.skin!!.url.replace("http://textures.minecraft.net/texture/", "https://skin-oldifier.deno.dev/") + "?head"
+        }
+        return cache[username]!!
     }
 }
