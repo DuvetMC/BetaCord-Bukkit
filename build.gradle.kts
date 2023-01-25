@@ -22,6 +22,10 @@ dependencies {
     compileOnly("net.fabricmc:sponge-mixin:0.11.4+mixin.0.8.5")
     implementation("dev.kord:kord-core:0.8.0-M16")
     shadow("dev.kord:kord-core:0.8.0-M16")
+
+    runtimeOnly(project(":gameProvider"))
+    runtimeOnly(files("./craftbukkit_BETA_1.3.jar"))
+    runtimeOnly("org.quiltmc:quilt-loader:0.18.1-beta.58")
 }
 
 tasks.test {
