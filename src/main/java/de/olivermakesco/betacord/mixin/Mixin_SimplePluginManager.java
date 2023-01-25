@@ -65,7 +65,7 @@ public class Mixin_SimplePluginManager {
         Collections.addAll(plugins, cir.getReturnValue());
         try {
             System.out.println("Registering quilt plugins!");
-            for (var entrypoint : PreLaunch.plugins) {
+            for (var entrypoint : PreLaunch.entrypoints) {
                 var plugin = entrypoint.getEntrypoint();
                 System.out.println(entrypoint.getProvider().metadata().name());
                 plugin.quilt$initialize(

@@ -17,7 +17,13 @@ class MinecraftCommandContext(override val command: String, override val value: 
     override suspend fun respondPlain(text: String, private: Boolean): PlayerChatEvent {
         if (private)
             value.player.sendMessage(text)
-        else server.broadcastMessage(text)
+        else {
+            for (player in server.onlinePlayers) {
+                if (player != value.player) {
+                    player.sendMessage(text)
+                }
+            }
+        }
         return value
     }
 
@@ -28,5 +34,4 @@ class MinecraftCommandContext(override val command: String, override val value: 
     override suspend fun respondWarning(text: String, private: Boolean): PlayerChatEvent {
         return respondPlain("§e$text", private)
     }
-
 }
