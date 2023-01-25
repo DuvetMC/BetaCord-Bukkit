@@ -107,6 +107,7 @@ class BetacordPlugin : QuiltPlugin() {
             File("./config/betacord-nicks.json").writeText(Json.encodeToString(nicks))
         }
         private fun File.tryCreate(defaultText: String): File {
+            parentFile.mkdir()
             if (createNewFile())
                 writeText(defaultText)
             return this
