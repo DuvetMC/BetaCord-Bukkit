@@ -2,6 +2,8 @@
 
 package de.olivermakesco.betacord.bukkit
 
+import de.olivermakesco.betacord.command.Commands
+import de.olivermakesco.betacord.command.MinecraftCommandContext
 import de.olivermakesco.betacord.quilt.QuiltPlugin
 import de.olivermakesco.betacord.skin.SkinUtil
 import dev.kord.common.entity.Snowflake
@@ -24,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bukkit.event.Event
 import org.bukkit.event.player.PlayerChatEvent
@@ -41,6 +44,7 @@ class BetacordPlugin : QuiltPlugin() {
 
     override fun onEnable() {
         GlobalScope.launch {
+            Commands.register()
             kord = KordBuilder(config.token).build()
             kord!!.on<MessageCreateEvent> {
                 if (message.channelId.value != config.channelId.value) return@on
@@ -98,9 +102,11 @@ class BetacordPlugin : QuiltPlugin() {
         var instance: BetacordPlugin? = null
         val chatListener = ChatListener()
         var webhook: Webhook? = null
-
+        val nicks: HashMap<String, String> = Json.decodeFromString(File("./config/betacord-nicks.json").tryCreate("{}").readText())
+        fun saveNicks() {
+            File("./config/betacord-nicks.json").writeText(Json.encodeToString(nicks))
+        }
         private fun File.tryCreate(defaultText: String): File {
-            mkdir()
             if (createNewFile())
                 writeText(defaultText)
             return this
@@ -109,7 +115,7 @@ class BetacordPlugin : QuiltPlugin() {
 }
 
 class ChatListener : PlayerListener() {
-    suspend fun Kord.sendMessage(user: String, content: String) {
+    suspend fun Kord.sendMessage(user: String, nick: String, content: String) {
         val channel = (getChannel(BetacordPlugin.config.channelId)!! as TextChannel)
         if (BetacordPlugin.webhook == null) {
             BetacordPlugin.webhook = channel.webhooks.firstOrNull {
@@ -118,29 +124,37 @@ class ChatListener : PlayerListener() {
         }
         BetacordPlugin.webhook!!.execute(BetacordPlugin.webhook!!.token!!) {
             avatarUrl = SkinUtil.getHead(user)
-            username = "$user | Minecraft"
+            username = "$nick | Minecraft"
             this.content = content
         }
     }
 
     override fun onPlayerChat(event: PlayerChatEvent) {
         GlobalScope.launch {
-            BetacordPlugin.kord?.sendMessage(event.player.displayName, event.message)
+            if (event.message.startsWith("p/")) {
+                event.isCancelled = true
+                Commands.parser.parse(MinecraftCommandContext(event.message.substring(2), event, BetacordPlugin.instance!!.server))
+                return@launch
+            }
+            BetacordPlugin.kord?.sendMessage(event.player.name, event.player.displayName, event.message)
         }
     }
 
     override fun onPlayerJoin(event: PlayerEvent) {
+        event.player.displayName = BetacordPlugin.nicks[event.player.name] ?: event.player.name
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
-                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.displayName}** joined the game.")
+                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.name}** joined the game.")
             }
         }
     }
 
     override fun onPlayerQuit(event: PlayerEvent) {
+        BetacordPlugin.nicks[event.player.name] = event.player.displayName ?: event.player.name
+        BetacordPlugin.saveNicks()
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
-                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.displayName}** left the game.")
+                (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.name}** left the game.")
             }
         }
     }
