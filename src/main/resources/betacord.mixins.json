@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.olivermakesco.betacord.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "Mixin_SimplePluginManager"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

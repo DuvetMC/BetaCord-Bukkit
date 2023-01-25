@@ -1,5 +1,0 @@
-name: BetaCord
-main: de.olivermakesco.betacord.bukkit.BetacordPlugin
-version: "1.0.0"
-load: STARTUP
-api-version: b1.3

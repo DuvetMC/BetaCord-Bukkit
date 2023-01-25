@@ -1,9 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.21"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.7.21"
+    kotlin("jvm")
+    id("com.github.johnrengelman.shadow")
 }
 
 group = "de.olivermakesco"
@@ -17,11 +16,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(files("./craftbukkit_BETA_1.3.jar"))
     compileOnly("org.quiltmc:quilt-loader:0.18.1-beta.58")
-    compileOnly("net.fabricmc:sponge-mixin:0.11.4+mixin.0.8.5")
-    implementation("dev.kord:kord-core:0.8.0-M16")
-    shadow("dev.kord:kord-core:0.8.0-M16")
 }
 
 tasks.test {

@@ -2,7 +2,8 @@
 
 package de.olivermakesco.betacord.bukkit
 
-import de.olivermakesco.betacord.bukkit.skin.SkinUtil
+import de.olivermakesco.betacord.quilt.QuiltPlugin
+import de.olivermakesco.betacord.skin.SkinUtil
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createWebhook
@@ -28,14 +29,12 @@ import org.bukkit.event.Event
 import org.bukkit.event.player.PlayerChatEvent
 import org.bukkit.event.player.PlayerEvent
 import org.bukkit.event.player.PlayerListener
-import org.bukkit.event.server.ServerListener
-import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
 @Serializable
 data class Config(val token: String, @SerialName("channel") val channelId: Snowflake)
 
-class BetacordPlugin : JavaPlugin() {
+class BetacordPlugin : QuiltPlugin() {
     override fun onDisable() {
         instance = null
     }

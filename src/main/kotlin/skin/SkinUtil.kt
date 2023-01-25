@@ -1,4 +1,4 @@
-package de.olivermakesco.betacord.bukkit.skin
+package de.olivermakesco.betacord.skin
 
 import io.ktor.client.*
 import io.ktor.client.call.*
