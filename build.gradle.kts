@@ -9,6 +9,11 @@ plugins {
 group = "de.olivermakesco"
 version = "1.0-SNAPSHOT"
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
+}
+
 repositories {
     mavenCentral()
     maven("https://maven.quiltmc.org/repository/release/")
@@ -36,5 +41,5 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = java.targetCompatibility.toString()
 }
