@@ -131,6 +131,7 @@ class ChatListener : PlayerListener() {
     }
 
     override fun onPlayerChat(event: PlayerChatEvent) {
+        event.player.displayName = BetacordPlugin.nicks[event.player.name] ?: event.player.name
         GlobalScope.launch {
             if (event.message.startsWith("p/")) {
                 event.isCancelled = true
@@ -151,8 +152,6 @@ class ChatListener : PlayerListener() {
     }
 
     override fun onPlayerQuit(event: PlayerEvent) {
-        BetacordPlugin.nicks[event.player.name] = event.player.displayName ?: event.player.name
-        BetacordPlugin.saveNicks()
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
                 (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.name}** left the game.")
