@@ -67,19 +67,19 @@ class BetacordPlugin : QuiltPlugin() {
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_CHAT,
             chatListener,
-            Event.Priority.Highest,
+            Event.Priority.Normal,
             this
         )
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_JOIN,
             chatListener,
-            Event.Priority.Highest,
+            Event.Priority.Normal,
             this
         )
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_QUIT,
             chatListener,
-            Event.Priority.Highest,
+            Event.Priority.Normal,
             this
         )
 
