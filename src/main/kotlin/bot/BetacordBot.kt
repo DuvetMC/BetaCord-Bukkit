@@ -1,9 +1,9 @@
 package de.olivermakesco.betacord.bot
 
-import de.olivermakesco.betacord.bukkit.BetacordPlugin
-import de.olivermakesco.betacord.tryCreate
 import de.olivermakesco.betacord.command.Commands
+import de.olivermakesco.betacord.pk
 import de.olivermakesco.betacord.skin.SkinUtil
+import de.olivermakesco.betacord.tryCreate
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createWebhook
@@ -16,8 +16,11 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
+import dev.proxyfox.pluralkt.PluralKt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -59,13 +62,20 @@ object BetacordBot {
         kord!!.on<MessageCreateEvent> {
             if (message.channelId.value != config.channelId.value) return@on
             if (message.author?.isBot == true) return@on
-            val proxy = "<§9${message.getAuthorAsMember()!!.displayName}§r>${processMessage(message.content)}${
-                if (message.attachments.size == 1) " §9[Attachment]§r"
-                else if (message.attachments.size > 1) " §9[Attachments]§r"
-                else ""
-            }".trim()
-            println(proxy)
-            server.broadcastMessage(proxy)
+            if (message.webhookId != null) return@on
+            withContext(Dispatchers.IO) {
+                Thread.sleep(100)
+            }
+            val memberName = message.getAuthorAsMember()!!.displayName
+            val processedMessage = processMessage(message.content)+if (message.attachments.size == 1) " §9[Attachment]§r"
+            else if (message.attachments.size > 1) " §9[Attachments]§r"
+            else ""
+            PluralKt.Misc.getMessage(message.id.pk) {
+                val name = if (isSuccess()) getSuccess().member?.displayName ?: getSuccess().member?.name ?: memberName else memberName
+                val proxy = "<§9$name§r>$processedMessage"
+                println(proxy)
+                server.broadcastMessage(proxy)
+            }
         }
         kord!!.on<ReadyEvent> {
             (kord.getChannel(config.channelId)!! as TextChannel).createMessage("**Server started.**")

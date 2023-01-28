@@ -28,6 +28,8 @@ dependencies {
     shadow("dev.kord:kord-core:0.8.0-M16")
     implementation("dev.proxyfox:proxyfox-command:1.7")
     shadow("dev.proxyfox:proxyfox-command:1.7")
+    implementation("dev.proxyfox:pluralkt:1.4")
+    shadow("dev.proxyfox:pluralkt:1.4")
 
     runtimeOnly(files("./craftbukkit_BETA_1.3.jar"))
 }
