@@ -4,7 +4,6 @@ package de.olivermakesco.betacord.bukkit
 
 import de.olivermakesco.betacord.command.Commands
 import de.olivermakesco.betacord.command.MinecraftCommandContext
-import de.olivermakesco.betacord.quilt.QuiltPlugin
 import de.olivermakesco.betacord.skin.SkinUtil
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -28,16 +27,18 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
-import org.bukkit.event.player.PlayerChatEvent
-import org.bukkit.event.player.PlayerEvent
-import org.bukkit.event.player.PlayerListener
+import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.entity.EntityListener
+import org.bukkit.event.player.*
+import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
 @Serializable
 data class Config(val token: String, @SerialName("channel") val channelId: Snowflake)
 
-class BetacordPlugin : QuiltPlugin() {
+class BetacordPlugin : JavaPlugin() {
     override fun onDisable() {
         instance = null
     }
@@ -66,22 +67,23 @@ class BetacordPlugin : QuiltPlugin() {
         instance = this
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_CHAT,
-            chatListener,
+            playerEvents,
             Event.Priority.Normal,
             this
         )
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_JOIN,
-            chatListener,
+            playerEvents,
             Event.Priority.Normal,
             this
         )
         server.pluginManager.registerEvent(
             Event.Type.PLAYER_QUIT,
-            chatListener,
+            playerEvents,
             Event.Priority.Normal,
             this
         )
+
 
         val shutdownHook = Thread {
             runBlocking {
@@ -100,7 +102,7 @@ class BetacordPlugin : QuiltPlugin() {
         """.trimIndent()).readText())
         var kord: Kord? = null
         var instance: BetacordPlugin? = null
-        val chatListener = ChatListener()
+        val playerEvents = PlayerEvents()
         var webhook: Webhook? = null
         val nicks: HashMap<String, String> = Json.decodeFromString(File("./config/betacord-nicks.json").tryCreate("{}").readText())
         fun saveNicks() {
@@ -115,7 +117,7 @@ class BetacordPlugin : QuiltPlugin() {
     }
 }
 
-class ChatListener : PlayerListener() {
+class PlayerEvents : PlayerListener() {
     suspend fun Kord.sendMessage(user: String, nick: String, content: String) {
         val channel = (getChannel(BetacordPlugin.config.channelId)!! as TextChannel)
         if (BetacordPlugin.webhook == null) {
@@ -142,7 +144,7 @@ class ChatListener : PlayerListener() {
         }
     }
 
-    override fun onPlayerJoin(event: PlayerEvent) {
+    override fun onPlayerJoin(event: PlayerJoinEvent) {
         event.player.displayName = BetacordPlugin.nicks[event.player.name] ?: event.player.name
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
@@ -151,7 +153,7 @@ class ChatListener : PlayerListener() {
         }
     }
 
-    override fun onPlayerQuit(event: PlayerEvent) {
+    override fun onPlayerQuit(event: PlayerQuitEvent) {
         GlobalScope.launch {
             BetacordPlugin.kord?.run {
                 (getChannel(BetacordPlugin.config.channelId)!! as TextChannel).createMessage("**${event.player.name}** left the game.")
