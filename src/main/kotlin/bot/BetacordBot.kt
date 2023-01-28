@@ -41,6 +41,11 @@ object BetacordBot {
     var webhook: Webhook? = null
     var kord: Kord? = null
 
+    val USER_MENTION = Regex("<@([0-9]+)>")
+    val ROLE_MENTION = Regex("<@&([0-9]+)>")
+    val CHANNEL_MENTION = Regex("<#([0-9]+)>")
+    val EMOJI_MENTION = Regex("<(:[a-zA-Z0-9\\-_]+:)([0-9]+)>")
+
     suspend fun init(server: Server) {
         val shutdownHook = Thread {
             runBlocking {
@@ -54,7 +59,11 @@ object BetacordBot {
         kord!!.on<MessageCreateEvent> {
             if (message.channelId.value != config.channelId.value) return@on
             if (message.author?.isBot == true) return@on
-            val proxy = "<§9${message.getAuthorAsMember()!!.displayName}§r> ${message.content}"
+            val proxy = "<§9${message.getAuthorAsMember()!!.displayName}§r>${processMessage(message.content)}${
+                if (message.attachments.size == 1) " §9[Attachment]§r"
+                else if (message.attachments.size > 1) " §9[Attachments]§r"
+                else ""
+            }".trim()
             println(proxy)
             server.broadcastMessage(proxy)
         }
@@ -84,5 +93,36 @@ object BetacordBot {
 
     suspend fun createJoinLeaveMessage(user: String, leave: Boolean) {
         (kord!!.getChannel(config.channelId)!! as TextChannel).createMessage("**$user** ${if (leave) "left" else "joined"} the game.")
+    }
+
+    suspend fun processMessage(content: String): String {
+        val channel = kord!!.getChannel(config.channelId)!!
+        val guild = kord!!.getGuild(channel.data.guildId.value!!)!!
+        var output = USER_MENTION.replace(content) {
+            runBlocking {
+                val member = guild.getMemberOrNull(Snowflake(it.groupValues[1])) ?: return@runBlocking it.value
+                "§9@${member.displayName}§r"
+            }
+        }
+        output = ROLE_MENTION.replace(output) {
+            runBlocking {
+                val role = guild.getRoleOrNull(Snowflake(it.groupValues[1])) ?: return@runBlocking it.value
+                "§9@${role.name}§r"
+            }
+        }
+        output = CHANNEL_MENTION.replace(output) {
+            runBlocking {
+                val channel = guild.getChannelOrNull(Snowflake(it.groupValues[1])) ?: return@runBlocking it.value
+                "§9#${channel.name}§r"
+            }
+        }
+        output = EMOJI_MENTION.replace(output) {
+            runBlocking {
+                "§9${it.groupValues[1]}§r"
+            }
+        }
+
+        return if (output.isEmpty()) ""
+        else " $output"
     }
 }
