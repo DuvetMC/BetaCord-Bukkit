@@ -13,8 +13,8 @@ object Commands {
         parser.literal("help") {
             executes {
                 respondSuccess("Help menu for p/", true)
-                respondPlain("  §cp/§ahelp§r - Display help", true)
-                respondPlain("  §cp/§anick §e<nickname>§r - Change your nickname", true)
+                respondPlain("  §bp/§ahelp§r - Display help", true)
+                respondPlain("  §bp/§anick §e<nickname>§r - Change your nickname", true)
                 true
             }
         }
