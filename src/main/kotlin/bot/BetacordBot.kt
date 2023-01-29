@@ -72,8 +72,7 @@ object BetacordBot {
             else ""
             PluralKt.Misc.getMessage(message.id.pk) {
                 val name = if (isSuccess()) getSuccess().member?.displayName ?: getSuccess().member?.name ?: memberName else memberName
-                val proxy = "<§9$name§r>$processedMessage"
-                println(proxy)
+                val proxy = "<§9$name§r>$processedMessage".replace("\u001B", "")
                 server.broadcastMessage(proxy)
             }
         }
