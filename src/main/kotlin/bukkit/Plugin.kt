@@ -213,4 +213,18 @@ class PlayerEvents : PlayerListener() {
             return
         }
     }
+
+    override fun onPlayerPickupItem(event: PlayerPickupItemEvent) {
+        val login = event.player.login ?: return
+        if (login.logged_in)
+            return
+        event.isCancelled = true
+    }
+
+    override fun onPlayerDropItem(event: PlayerDropItemEvent) {
+        val login = event.player.login ?: return
+        if (login.logged_in)
+            return
+        event.isCancelled = true
+    }
 }

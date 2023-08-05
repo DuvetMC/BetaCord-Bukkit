@@ -81,9 +81,9 @@ object BetacordBot {
                 Thread.sleep(500)
             }
             val memberName = message.getAuthorAsMemberOrThrow().effectiveName
-            val processedMessage = processMessage(message.content)+if (message.attachments.size == 1) " §9[Attachment]§r"
-            else if (message.attachments.size > 1) " §9[Attachments]§r"
-            else ""
+            val processedMessage = processMessage(message.content) + if (message.attachments.size == 1) " §9[Attachment]§r"
+                else if (message.attachments.size > 1) " §9[Attachments]§r"
+                else ""
             val message = PluralKt.Misc.getMessage(message.id.pk).await()
             val name = if (message.isSuccess()) message.getSuccess().member?.displayName ?: message.getSuccess().member?.name ?: memberName else memberName
             val proxy = "<§9$name§r>$processedMessage".replace("\u001B", "")
