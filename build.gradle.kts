@@ -1,10 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.21"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.7.21"
+    kotlin("jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
+
+val include by configurations.register("include")
 
 group = "de.olivermakesco"
 version = "1.0-SNAPSHOT"
@@ -24,12 +25,16 @@ repositories {
 
 dependencies {
     compileOnly(files("./craftbukkit_BETA_1.7.3.jar"))
-    implementation("dev.kord:kord-core:0.8.0-M16")
-    shadow("dev.kord:kord-core:0.8.0-M16")
-    implementation("dev.proxyfox:proxyfox-command:1.7")
-    shadow("dev.proxyfox:proxyfox-command:1.7")
-    implementation("dev.proxyfox:pluralkt:1.4")
-    shadow("dev.proxyfox:pluralkt:1.4")
+    implementation("dev.kord:kord-core:0.10.0")
+    include("dev.kord:kord-core:0.10.0")
+    implementation("dev.proxyfox:proxyfox-command:1.8")
+    include("dev.proxyfox:proxyfox-command:1.8")
+    implementation("dev.proxyfox:pluralkt:1.8")
+    include("dev.proxyfox:pluralkt:1.8")
+    implementation("io.arrow-kt:arrow-core:1.2.0")
+    include("io.arrow-kt:arrow-core:1.2.0")
+    include("org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.5.1")
+    include("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
 
     runtimeOnly(files("./craftbukkit_BETA_1.3.jar"))
 }
@@ -40,4 +45,9 @@ tasks.test {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = java.targetCompatibility.toString()
+}
+
+tasks.withType<Jar> {
+    from(include.map(::zipTree))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
